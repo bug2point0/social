@@ -18,21 +18,3 @@ class MailComposeMessage(models.TransientModel):
                 else:
                     composer.body = Markup(context["quote_body"])
         return res
-
-    @api.depends(
-        "composition_mode",
-        "model",
-        "parent_id",
-        "record_name",
-        "res_domain",
-        "res_ids",
-        "template_id",
-    )
-    @api.depends_context("default_subject")
-    def _compute_subject(self):
-        res = super()._compute_subject()
-        for composer in self:
-            subj = composer._context.get("default_subject", False)
-            if subj:
-                composer.subject = tools.ustr(subj)
-        return res
