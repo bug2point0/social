@@ -8,7 +8,11 @@ from odoo.addons.base.models.ir_mail_server import extract_rfc2822_addresses
 
 
 def format_emails(partners):
-    emails = [tools.formataddr((p.name or "", p.email)) for p in partners if p.email]
+    emails = [
+        tools.formataddr((p.name or "", tools.email_normalize(p.email)))
+        for p in partners
+        if p.email
+    ]
     return ", ".join(emails)
 
 
@@ -44,7 +48,7 @@ class MailMail(models.Model):
 
         # Collect recipients (RCPT TO) and update all emails
         # with the same To, Cc headers (to be shown by email client as users expect)
-        recipients = []
+        recipients = set()
         for m in res:
             rcpt_to = None
             if m["email_to"]:
@@ -64,7 +68,7 @@ class MailMail(models.Model):
                 rcpt_to = extract_rfc2822_addresses(m["email_cc"][0])[0]
 
             if rcpt_to:
-                recipients.append(rcpt_to)
+                recipients.add(rcpt_to)
 
             m.update(
                 {
@@ -74,5 +78,9 @@ class MailMail(models.Model):
                 }
             )
 
-        self.env.context = {**self.env.context, "recipients": recipients}
+        self.env.context = {**self.env.context, "recipients": list(recipients)}
+
+        if len(res) > len(recipients):
+            res.pop()
+
         return res

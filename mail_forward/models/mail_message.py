@@ -8,7 +8,7 @@ class MailMessage(models.Model):
     _inherit = "mail.message"
 
     def action_wizard_forward(self):
-        view = self.env.ref("mail_forward.mail_compose_message_forward_form")
+        view = self.env.ref("mail_forward.mail_compose_message_forward_form").sudo()
         action = self.env["ir.actions.actions"]._for_xml_id(
             "mail.action_email_compose_message_wizard"
         )
@@ -19,8 +19,6 @@ class MailMessage(models.Model):
             "default_model": self.model,
             "default_res_ids": [self.res_id],
             "default_composition_mode": "comment",
-            "default_body": self._build_message_body_for_forward(),
-            "default_attachment_ids": self.attachment_ids.ids,
             "default_is_log": False,
             "default_notify": True,
             "force_email": True,
